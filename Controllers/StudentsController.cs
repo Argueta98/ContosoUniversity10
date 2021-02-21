@@ -7,22 +7,31 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity10.Data;
 using ContosoUniversity10.Models;
+using ContosoUniversity10.DTO;
+using AutoMapper;
 
 namespace ContosoUniversity10.Controllers
 {
     public class StudentsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly IMapper mapper;
 
-        public StudentsController(SchoolContext context)
+        public StudentsController(SchoolContext context, IMapper mapper)
         {
             _context = context;
+            this.mapper = mapper;
         }
 
         // GET: Students
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Students.ToListAsync());
+            var data = await _context.Students.ToListAsync();
+
+            var listStudents = data.Select(x => mapper.Map<StudentDTO>(x)).ToList();
+
+            return View(listStudents);
+            // return View();
         }
 
         // GET: Students/Details/5
@@ -36,11 +45,11 @@ namespace ContosoUniversity10.Controllers
             var student = await _context.Students
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (student == null)
-            {
                 return NotFound();
-            }
 
-            return View(student);
+            var studentDTO = mapper.Map<StudentDTO>(student);
+
+            return View(studentDTO);
         }
 
         // GET: Students/Create
@@ -54,18 +63,28 @@ namespace ContosoUniversity10.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<IActionResult> Create([Bind("ID,LastName,FirstMidName,EnrollmentDate")] StudentDTO studentDTO)
         {
+            //var student = new Student
+            //{
+            //    //Modificando datos agregando el DTO
+            //    FirstMidName = studentDTO.FirstMidName,
+            //    LastName = studentDTO.LastName,
+            //    EnrollmentDate = studentDTO.EnrollmentDate
+            //};
+
+
             if (ModelState.IsValid)
             {
+                var student = mapper.Map<Student>(studentDTO);
                 _context.Add(student);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(student);
+            return View(studentDTO);
         }
 
-        // GET: Students/Edit/5
+        // GET: studentDTOs/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,12 +92,15 @@ namespace ContosoUniversity10.Controllers
                 return NotFound();
             }
 
+           
+
             var student = await _context.Students.FindAsync(id);
             if (student == null)
-            {
                 return NotFound();
-            }
-            return View(student);
+            
+            var studentDTO = mapper.Map<StudentDTO>(student);
+
+            return View(studentDTO);
         }
 
         // POST: Students/Edit/5
@@ -86,9 +108,9 @@ namespace ContosoUniversity10.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,LastName,FirstMidName,EnrollmentDate")] StudentDTO studentDTO)
         {
-            if (id != student.ID)
+            if (id != studentDTO.ID)
             {
                 return NotFound();
             }
@@ -97,12 +119,13 @@ namespace ContosoUniversity10.Controllers
             {
                 try
                 {
+                    var student = mapper.Map<Student>(studentDTO);
                     _context.Update(student);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StudentExists(student.ID))
+                    if (!StudentExists(studentDTO.ID))
                     {
                         return NotFound();
                     }
@@ -113,7 +136,7 @@ namespace ContosoUniversity10.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(student);
+            return View(studentDTO);
         }
 
         // GET: Students/Delete/5

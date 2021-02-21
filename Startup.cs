@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using AutoMapper;
+
 
 namespace ContosoUniversity10
 {
@@ -23,6 +25,14 @@ namespace ContosoUniversity10
             services.AddDbContext<SchoolContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
+
+            //AutoMapper
+          /*  services.AddAutoMapper(options =>
+            {
+                options.CreateMap<StudentDTO, Student>();
+            }); */
+
+            services.AddAutoMapper(System.AppDomain.CurrentDomain.GetAssemblies());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
